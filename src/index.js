@@ -6,6 +6,6 @@ function Queue(max, options) {
 
 queueMixin(Queue)
 
-Queue.version = '1.0.0'
+Queue.version = '1.0.2'
 
 export default Queue

@@ -1,14 +1,45 @@
 /*!
- * queue-of-promise v1.0.0
+ * queue-of-promise v1.0.1
  * (c) 2018-2018 cs686
  * Released under the MIT License.
  */
-var utils = require("./utils.js");
+var epc = require("extend-promise/src/extendClass");
 
-var Promise = require("bluebird");
+function isArray(obj) {
+  return Object.prototype.toString.call(obj) == "[object Array]";
+}
+function isFunction(obj) {
+  return typeof obj === "function";
+}
+function isObject(obj) {
+  return typeof obj === "object" && obj !== null;
+}
+function arg2arr(arg, b, s) {
+  return Array.prototype.slice.call(arg, b, s);
+}
+function toArray() {
+  return Array.prototype.concat.apply([], arguments);
+}
+/**
+ * 扩展Promise
+ * @param {Promise} Promise 
+ */
+
+function extendPromise(Promise) {
+  return epc(Promise, {});
+}
+function runFn2Promise(Promise, fn) {
+  try {
+    return Promise.resolve(fn());
+  } catch (e) {
+    return Promise.reject(e);
+  }
+}
+
+const Promise = require("bluebird");
 
 function queueMixin(Queue) {
-  var DEFAULT_OPTIONS = {
+  const DEFAULT_OPTIONS = {
     queueStart: null,
     //队列开始
     queueEnd: null,
@@ -29,30 +60,30 @@ function queueMixin(Queue) {
 
   };
 
-  var _Promise;
+  let _Promise;
 
-  _Promise = Queue.Q = Queue.Promise = utils.extendPromise(Promise);
+  _Promise = Queue.Q = Queue.Promise = extendPromise(Promise);
 
-  var runFn = function runFn(fn) {
-    return utils.runFn2Promise(_Promise, fn);
+  let runFn = function (fn) {
+    return runFn2Promise(_Promise, fn);
   };
 
-  var ONERROR = function ONERROR(err) {
+  let ONERROR = err => {
     console.error(err);
   };
 
   Queue.prototype._init = function (max, options) {
-    var self = this;
-    var _isStart = false;
-    var _isStop = 0;
-    var _runCount = 0;
-    var _queue = [];
-    var _max = max;
+    let self = this;
+    let _isStart = false;
+    let _isStop = 0;
+    let _runCount = 0;
+    let _queue = [];
+    let _max = max;
     this._options = DEFAULT_OPTIONS;
     this.onError = ONERROR;
 
-    if (utils.isObject(options)) {
-      for (var i in options) {
+    if (isObject(options)) {
+      for (let i in options) {
         if (DEFAULT_OPTIONS.hasOwnProperty(i)) {
           DEFAULT_OPTIONS[i] = options[i];
         }
@@ -111,20 +142,20 @@ function queueMixin(Queue) {
             retryType = getOption("retryIsJump", unit, self),
             _self = unit._options.self;
 
-        var fix = function fix() {
+        var fix = function () {
           if (xc_timeout) clearTimeout(xc_timeout);
           xc_timeout = 0;
           if (_mark++) return true;
           _runCount--;
         };
 
-        var afinally = function afinally() {
+        var afinally = function () {
           autoRun(unit, self, "workFinally", self, self, unit); // if(runEvent.call(unit,'workFinally',self,self,unit) !== false){
           // 	onoff && runEvent.call(self,'workFinally',self,self,unit);
           // }
         };
 
-        var issucc = function issucc(data) {
+        var issucc = function (data) {
           if (fix()) return;
           unit.defer.resolve(data); //通知执行单元,成功
 
@@ -135,7 +166,7 @@ function queueMixin(Queue) {
           afinally();
         };
 
-        var iserr = function iserr(err) {
+        var iserr = function (err) {
           if (fix()) return;
 
           if (retryNo > unit._errNo++) {
@@ -223,7 +254,7 @@ function queueMixin(Queue) {
 
 
   function QueueUnit(fn, args, options) {
-    var def = {
+    let def = {
       workResolve: true,
       workReject: true,
       workFinally: true,
@@ -231,7 +262,7 @@ function queueMixin(Queue) {
       regs: [],
       self: null
     };
-    var oNames = ["workResolve", //是否执行队列workResolve事件
+    let oNames = ["workResolve", //是否执行队列workResolve事件
     "workReject", //是否执行队列workReject事件
     "workFinally", //是否执行队列workFinally事件
     "queueEventTrigger", //队列事件开关
@@ -240,9 +271,9 @@ function queueMixin(Queue) {
     "timeout", //超时
     "self" //运行函数self
     ];
-    var oi = 1;
+    let oi = 1;
 
-    if (!utils.isFunction(fn)) {
+    if (!isFunction(fn)) {
       throw new TypeError("Queues only support function, '" + fn + "' is not function");
     }
 
@@ -259,7 +290,7 @@ function queueMixin(Queue) {
 
     this.defer = _Promise.defer();
 
-    if (utils.isArray(args)) {
+    if (isArray(args)) {
       this.regs = args;
       oi++;
     }
@@ -275,7 +306,7 @@ function queueMixin(Queue) {
     this._options = def;
     var configObj = arguments[oi]; //console.log(configObj);
 
-    if (utils.isObject(configObj)) {
+    if (isObject(configObj)) {
       for (var i in configObj) {
         if (inOptions(i)) {
           def[i] = configObj[i];
@@ -294,9 +325,9 @@ function queueMixin(Queue) {
 
   function runEvent(eventName, self) {
     var event = this._options[eventName],
-        arg = utils.arg2arr(arguments, 2);
+        arg = arg2arr(arguments, 2);
 
-    if (utils.isFunction(event)) {
+    if (isFunction(event)) {
       try {
         return event.apply(self, arg);
       } catch (e) {
@@ -309,7 +340,7 @@ function queueMixin(Queue) {
 
   function autoRun(unit, queue) {
     var onoff = unit._options.queueEventTrigger;
-    var args = utils.arg2arr(arguments, 2);
+    var args = arg2arr(arguments, 2);
 
     if (runEvent.apply(unit, args) !== false) {
       onoff && runEvent.apply(queue, args);
@@ -331,21 +362,21 @@ function queueMixin(Queue) {
   }
 
   function onError(err) {
-    if (utils.isFunction(this.onError)) {
+    if (isFunction(this.onError)) {
       this.onError.call(this, err);
     }
   }
 
   function getAddArgs(data, fn, con, each) {
-    var isArray = utils.isArray(data);
-    var rdata = isArray ? [] : {};
+    var isArray$$1 = isArray(data);
+    var rdata = isArray$$1 ? [] : {};
 
     function fill(k) {
-      var args = each ? utils.toArray([data[k]], [k], [data]) : utils.toArray(data[k]);
+      var args = each ? toArray([data[k]], [k], [data]) : toArray(data[k]);
       rdata[k] = [fn, args, con];
     }
 
-    if (isArray) {
+    if (isArray$$1) {
       for (var i = 0; i < data.length; i++) {
         fill(i);
       }
@@ -362,7 +393,7 @@ function queueMixin(Queue) {
     var baseN = 2,
         _con;
 
-    if (utils.isObject(con)) {
+    if (isObject(con)) {
       _con = con;
       baseN++;
     }
@@ -450,9 +481,9 @@ function queueMixin(Queue) {
         jump,
         promise;
 
-    if (!utils.isFunction(fn)) throw new TypeError("Queues only support function, '" + fn + "' is not function");
+    if (!isFunction(fn)) throw new TypeError("Queues only support function, '" + fn + "' is not function");
 
-    _fun = function _fun() {
+    _fun = function () {
       var defer = _Promise.defer();
 
       fn(defer.resolve, defer.reject);
@@ -461,7 +492,7 @@ function queueMixin(Queue) {
 
     unitArgs = [_fun];
 
-    if (utils.isObject(options)) {
+    if (isObject(options)) {
       unitArgs.push(options);
       _i++;
     }
@@ -480,7 +511,7 @@ function queueMixin(Queue) {
     for (var i = 0; i < array.length; i++) {
       +function () {
         var _i = i;
-        var unitArgs = utils.toArray(array[_i]);
+        var unitArgs = toArray(array[_i]);
 
         var _p = jump ? o.unshift.apply(o, unitArgs) : o.push.apply(o, unitArgs);
 
@@ -507,7 +538,7 @@ function queueMixin(Queue) {
     for (var k in props) {
       +function () {
         var _k = k;
-        var unitArgs = utils.toArray(props[_k]);
+        var unitArgs = toArray(props[_k]);
 
         var _p = jump ? o.unshift.apply(o, unitArgs) : o.push.apply(o, unitArgs);
 

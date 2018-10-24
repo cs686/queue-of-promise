@@ -1,22 +1,22 @@
 var epc = require("extend-promise/src/extendClass");
 
-exports.isArray = function (obj) {
+export function isArray (obj) {
 	return Object.prototype.toString.call(obj) == "[object Array]";
 }
 
-exports.isFunction = function (obj) {
+export function isFunction (obj) {
 	return typeof obj === "function";
 }
 
-exports.isObject = function (obj) {
+export function isObject (obj) {
 	return typeof obj === "object" && obj !== null
 }
 
-exports.arg2arr = function (arg, b, s) {
+export function arg2arr (arg, b, s) {
 	return Array.prototype.slice.call(arg, b, s);
 }
 
-exports.toArray = function () {
+export function toArray () {
 	return Array.prototype.concat.apply([], arguments);
 }
 
@@ -24,7 +24,7 @@ exports.toArray = function () {
  * 将值修整为正整数，0与负数报错
  * @param {Number} max 
  */
-exports.getPositiveInt = function (max) {
+export function getPositiveInt (max) {
 	var _max = (+max) >> 0;
 	if (_max >= 1) {
 		return _max;
@@ -36,11 +36,11 @@ exports.getPositiveInt = function (max) {
  * 扩展Promise
  * @param {Promise} Promise 
  */
-exports.extendPromise = function (Promise) {
+export function extendPromise (Promise) {
 	return epc(Promise, {});
 }
 
-exports.runFn2Promise = function (Promise,fn) {
+export function runFn2Promise(Promise,fn) {
 	try{
 		return Promise.resolve(fn());
 	}catch(e){
