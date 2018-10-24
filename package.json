@@ -1,8 +1,9 @@
 {
   "name": "queue-of-promise",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "promise queue",
-  "main": "index.js",
+  "main": "dist/queue-of-promise.js",
+  "module": "dist/queue-of-promise.esm.js",
   "scripts": {
     "dev": "node build/dev-server.js",
     "build": "node build/build.js",
