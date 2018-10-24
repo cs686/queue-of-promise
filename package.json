@@ -13,6 +13,10 @@
     "queue",
     "async"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:cs686/queue-of-promise.git"
+  },
   "author": "cs686",
   "license": "MIT",
   "devDependencies": {
