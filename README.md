@@ -2,8 +2,7 @@
 queue-of-promise
 
 ```
-var Queue = require('promise-queue-plus');
-var q = Queue.Promise; //a Promise utils;
+var Queue = require('queue-of-promise');
 
 //Realize a queue with a maximum concurrency of 1
 var queue1 = new Queue(1,{
